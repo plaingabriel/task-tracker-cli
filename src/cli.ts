@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import { parseISOStringToDate } from "./lib.ts";
 import {
   inputTaskDescription,
@@ -10,6 +9,7 @@ import {
 } from "./prompts.ts";
 import {
   addTask,
+  checkDirExisting,
   checkFileExisting,
   deleteTask,
   getTasks,
@@ -88,6 +88,7 @@ async function viewTasks(tasks: Task[], status: ViewOption) {
 }
 
 export async function mainMenu() {
+  await checkDirExisting();
   await checkFileExisting();
 
   while (true) {

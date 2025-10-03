@@ -1,7 +1,8 @@
 import fs from "fs/promises";
 import { type Task, type TaskStatus } from "./types.ts";
 
-const filePath = "./src/tasks.json";
+const folderPath = "./db";
+const filePath = `${folderPath}/tasks.json`;
 
 function createNewTaskId(tasks: Task[]): number {
   if (tasks.length === 0) {
@@ -15,6 +16,15 @@ function createNewTaskId(tasks: Task[]): number {
   }
 
   return lastTask.id + 1;
+}
+
+export async function checkDirExisting(): Promise<void> {
+  try {
+    await fs.access(folderPath);
+  } catch (error) {
+    // If the directory doesn't exist, create it
+    await fs.mkdir(folderPath);
+  }
 }
 
 export async function checkFileExisting(): Promise<void> {
