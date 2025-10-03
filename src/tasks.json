@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "description": "Comprar dos panes",
+    "status": "in-progress",
+    "createdAt": "2025-10-02T23:18:31.191Z",
+    "updatedAt": "2025-10-02T23:20:07.449Z"
+  },
+  {
+    "id": 2,
+    "description": "Sexo en la ciudad",
+    "status": "todo",
+    "createdAt": "2025-10-02T23:18:42.166Z",
+    "updatedAt": "2025-10-02T23:18:42.166Z"
+  }
+]
