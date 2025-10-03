@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { Table } from "console-table-printer";
 import { parseISOStringToDate } from "./lib.ts";
 import {
   inputTaskDescription,
@@ -60,61 +59,32 @@ async function viewTasksMenu(tasks: Task[]) {
 }
 
 async function viewTasks(tasks: Task[], status: ViewOption) {
-  if (tasks.length === 0) {
+  const filteredTasks = tasks.filter((task) => {
+    if (status === "all") {
+      return true;
+    }
+
+    return task.status === status;
+  });
+
+  if (filteredTasks.length === 0) {
     console.log("No tasks found.");
     return;
   }
 
-  const columns = [
-    {
-      name: "id",
-      title: "ID",
-    },
-    {
-      name: "description",
-      title: "Description",
-    },
-    {
-      name: "status",
-      title: "Status",
-    },
-    {
-      name: "createdAt",
-      title: "Created At",
-    },
-    {
-      name: "updatedAt",
-      title: "Updated At",
-    },
-  ];
-
-  const table = new Table({
-    columns: columns.map((column) => ({
-      name: column.name,
-      title: chalk.bold.green(column.title),
-      alignment: "left",
-    })),
-    filter: (row) => status === "all" || row.status === status,
-  });
-
-  Promise.all(
-    tasks.map(async (task) => {
-      const description = task.description;
-      const status = task.status;
-      const createdAt = await parseISOStringToDate(task.createdAt);
-      const updatedAt = await parseISOStringToDate(task.updatedAt);
-
-      table.addRow({
+  const mappedTasks = await Promise.all(
+    filteredTasks.map(async (task) => {
+      return {
         id: task.id,
-        description: description,
-        status: status,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-      });
+        description: task.description,
+        status: task.status,
+        createdAt: await parseISOStringToDate(task.createdAt),
+        updatedAt: await parseISOStringToDate(task.updatedAt),
+      };
     })
-  ).then(() => {
-    table.printTable();
-  });
+  );
+
+  console.table(mappedTasks);
 }
 
 export async function mainMenu() {
