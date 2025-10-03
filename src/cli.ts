@@ -1,7 +1,14 @@
 import chalk from "chalk";
 import { Table } from "console-table-printer";
 import { parseISOStringToDate } from "./lib.ts";
-import { createInput, createSelect } from "./prompts.ts";
+import {
+  inputTaskDescription,
+  inputTaskId,
+  selectMainMenuOptions,
+  selectOptionUpdate,
+  selectStatusUpdate,
+  selectViewOption,
+} from "./prompts.ts";
 import {
   addTask,
   checkFileExisting,
@@ -12,121 +19,16 @@ import {
 } from "./tasks.ts";
 import type { Task, TaskStatus } from "./types.ts";
 
-type MainMenuOptions = "add" | "view" | "update" | "remove" | "exit";
-type UpdateOption = "description" | "status" | "back";
 type ViewOption = "all" | "back" | TaskStatus;
 
 console.log("Task Tracker CLI");
 console.log("What do you want to do?");
 
-async function selectMainMenuOptions(): Promise<MainMenuOptions> {
-  return createSelect({
-    message: "Select an option: ",
-    choices: [
-      { name: "Add task", value: "add" },
-      { name: "View tasks", value: "view" },
-      { name: "Update task", value: "update" },
-      { name: "Remove task", value: "remove" },
-      { name: "Exit", value: "exit" },
-    ],
-  });
-}
-
-async function selectUpdateOption(): Promise<UpdateOption> {
-  return createSelect({
-    message: "Select an option: ",
-    choices: [
-      { name: "Update description", value: "description" },
-      { name: "Update status", value: "status" },
-      { name: "Back", value: "back" },
-    ],
-  });
-}
-
-async function selectUpdateStatus(): Promise<TaskStatus> {
-  return createSelect({
-    message: "Select a status: ",
-    choices: [
-      { name: "To Do", value: "todo" },
-      { name: "In Progress", value: "in-progress" },
-      { name: "Done", value: "done" },
-    ],
-  });
-}
-
-async function selectViewOption(): Promise<ViewOption> {
-  return createSelect({
-    message: "Select an option: ",
-    choices: [
-      { name: "All tasks", value: "all" },
-      { name: "To Do", value: "todo" },
-      { name: "In Progress", value: "in-progress" },
-      { name: "Done", value: "done" },
-      { name: "Back", value: "back" },
-    ],
-  });
-}
-
-async function inputTaskDescription(): Promise<string> {
-  return createInput({
-    message: "Enter the task description: ",
-    required: true,
-  });
-}
-
-async function inputTaskId(): Promise<number> {
-  const taskId = createInput({
-    message: "Enter the task ID: ",
-    required: true,
-  });
-
-  try {
-    const parsedTaskId = parseInt(await taskId);
-    return parsedTaskId;
-  } catch (error) {
-    console.error("Invalid task ID. Please enter a valid number.");
-    return await inputTaskId();
-  }
-}
-
-export async function mainMenu() {
-  await checkFileExisting();
-
-  while (true) {
-    const mainOptionSelected = await selectMainMenuOptions();
-
-    switch (mainOptionSelected) {
-      case "add":
-        const taskDescription = await inputTaskDescription();
-        await addTask(taskDescription);
-        break;
-
-      case "view":
-        const tasks = await getTasks();
-        await viewTasksMenu(tasks);
-        break;
-
-      case "update":
-        await updateTaskMenu();
-        break;
-
-      case "remove":
-        const taskIdToRemove = await inputTaskId();
-        await deleteTask(taskIdToRemove);
-        break;
-
-      case "exit":
-        console.log("Exiting the program...");
-        process.exit(0);
-    }
-  }
-}
-
-export async function updateTaskMenu() {
+async function updateTaskMenu() {
   const taskId = await inputTaskId();
 
   while (true) {
-    const updateOption = await selectUpdateOption();
+    const updateOption = await selectOptionUpdate();
 
     switch (updateOption) {
       case "description":
@@ -135,7 +37,7 @@ export async function updateTaskMenu() {
         break;
 
       case "status":
-        const newTaskStatus = await selectUpdateStatus();
+        const newTaskStatus = await selectStatusUpdate();
         await updateTaskStatus(taskId, newTaskStatus);
         break;
 
@@ -145,7 +47,7 @@ export async function updateTaskMenu() {
   }
 }
 
-export async function viewTasksMenu(tasks: Task[]) {
+async function viewTasksMenu(tasks: Task[]) {
   while (true) {
     const viewOption = await selectViewOption();
 
@@ -157,7 +59,7 @@ export async function viewTasksMenu(tasks: Task[]) {
   }
 }
 
-export async function viewTasks(tasks: Task[], status: ViewOption) {
+async function viewTasks(tasks: Task[], status: ViewOption) {
   if (tasks.length === 0) {
     console.log("No tasks found.");
     return;
@@ -213,4 +115,37 @@ export async function viewTasks(tasks: Task[], status: ViewOption) {
   ).then(() => {
     table.printTable();
   });
+}
+
+export async function mainMenu() {
+  await checkFileExisting();
+
+  while (true) {
+    const mainOptionSelected = await selectMainMenuOptions();
+
+    switch (mainOptionSelected) {
+      case "add":
+        const taskDescription = await inputTaskDescription();
+        await addTask(taskDescription);
+        break;
+
+      case "view":
+        const tasks = await getTasks();
+        await viewTasksMenu(tasks);
+        break;
+
+      case "update":
+        await updateTaskMenu();
+        break;
+
+      case "remove":
+        const taskIdToRemove = await inputTaskId();
+        await deleteTask(taskIdToRemove);
+        break;
+
+      case "exit":
+        console.log("Exiting the program...");
+        process.exit(0);
+    }
+  }
 }
